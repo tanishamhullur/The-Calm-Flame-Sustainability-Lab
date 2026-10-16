@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Calm Flame — Circularity & Sustainable Product Strategy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root {
+    --bg: #F3EEE1;
+    --bg-soft: #EAE2CC;
+    --card: #FBF8EF;
+    --ink: #20291F;
+    --ink-soft: #55604F;
+    --border: #D9CFAF;
+    --moss: #3D5A80;
+    --moss-deep: #2A3F5C;
+    --good: #3D5A80;
+    --shadow: rgba(32, 41, 31, 0.10);
+
+    /* lifecycle / accent palette — one hue per stage, reused across the page */
+    --acc-raw: #B85C38;      /* terracotta — raw materials */
+    --acc-make: #3D5A80;     /* indigo — manufacturing */
+    --acc-pack: #C98A2B;     /* amber — packaging */
+    --acc-ship: #C46A6A;     /* dusty rose — transportation */
+    --acc-use: #8C3B4A;      /* burgundy — customer use */
+    --acc-end: #6B4570;      /* plum — end-of-life */
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15161C; --bg-soft: #1C1E26; --card: #212330;
+      --ink: #EDE9DC; --ink-soft: #A6A9B4; --border: #30323F;
+      --moss: #86A9D6; --moss-deep: #A9C3E8;
+      --good: #86A9D6; --shadow: rgba(0,0,0,0.4);
+      --acc-raw: #E08862; --acc-make: #86A9D6; --acc-pack: #E0AD57;
+      --acc-ship: #E0958E; --acc-use: #C97E8A; --acc-end: #C77A9C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15161C; --bg-soft: #1C1E26; --card: #212330;
+    --ink: #EDE9DC; --ink-soft: #A6A9B4; --border: #30323F;
+    --moss: #86A9D6; --moss-deep: #A9C3E8;
+    --good: #86A9D6; --shadow: rgba(0,0,0,0.4);
+    --acc-raw: #E08862; --acc-make: #86A9D6; --acc-pack: #E0AD57;
+    --acc-ship: #E0958E; --acc-use: #C97E8A; --acc-end: #C77A9C;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.55;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: "Fraunces", Georgia, serif;
+    color: var(--ink);
+    margin: 0;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 30;
+    padding-top: env(safe-area-inset-top, 0px);
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: baseline; gap: 9px; font-family: "Fraunces", serif; font-size: 1.05rem; }
+  .brand-dots { display: inline-flex; gap: 3px; transform: translateY(-1px); }
+  .brand-dots span { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .theme-toggle {
+    border: 1px solid var(--border); background: transparent; color: var(--ink-soft);
+    font-family: "Public Sans", sans-serif; font-size: 0.8rem; padding: 7px 13px; border-radius: 100px; cursor: pointer;
+  }
+  .theme-toggle:hover { color: var(--ink); border-color: var(--moss); }
+
+  .hero { padding: 56px 0 20px; position: relative; }
+  .kicker { font-size: 0.85rem; color: var(--acc-pack); margin-bottom: 14px; font-weight: 600; }
+  .hero h1 { font-size: clamp(1.9rem, 4vw, 2.7rem); line-height: 1.1; max-width: 22ch; }
+  .hero p.lede { margin-top: 16px; font-size: 1.05rem; color: var(--ink-soft); max-width: 60ch; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+  .legend-chip {
+    display: flex; align-items: center; gap: 7px; font-size: 0.78rem; color: var(--ink-soft);
+    background: var(--card); border: 1px solid var(--border); padding: 6px 12px 6px 8px; border-radius: 100px;
+  }
+  .legend-chip .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+  .progress-row { display: flex; align-items: center; gap: 16px; margin-top: 26px; flex-wrap: wrap; }
+  .progress-track {
+    flex: 1; min-width: 200px; height: 10px; border-radius: 100px; background: var(--bg-soft);
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; width: 0%; transition: width .4s ease;
+    background: linear-gradient(90deg, var(--acc-raw), var(--acc-pack), var(--acc-use), var(--acc-make));
+  }
+  .progress-label { font-size: 0.85rem; color: var(--ink-soft); white-space: nowrap; }
+
+  .divider { height: 1px; background: var(--border); margin: 44px 0; }
+
+  .section-head { margin-bottom: 24px; max-width: 62ch; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 1.4rem; }
+  .section-head p { color: var(--ink-soft); margin-top: 8px; font-size: 0.95rem; }
+  .section-head-text { max-width: 62ch; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-bottom: 8px; }
+  .panel {
+    background: var(--card); border: 1px solid var(--border); border-top: 3px solid var(--panel-accent, var(--moss));
+    border-radius: 16px; padding: 26px;
+    box-shadow: 0 6px 18px var(--shadow);
+  }
+  .panel h3 { font-size: 1.05rem; margin-bottom: 10px; }
+  .panel p { font-size: 0.95rem; color: var(--ink-soft); margin: 0; }
+  [contenteditable="true"] { cursor: text; }
+  [contenteditable="true"]:hover { outline: 1px dashed var(--border); outline-offset: 4px; }
+  [contenteditable="true"]:focus { outline: 2px solid var(--moss); outline-offset: 4px; }
+
+  /* lifecycle */
+  .lifecycle { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 30px 0 8px; }
+  .stage {
+    background: var(--card); border: 1px solid var(--border); border-top: 4px solid var(--stage-color);
+    border-radius: 14px; padding: 16px 14px;
+    font-size: 0.82rem; text-align: left; position: relative;
+  }
+  .stage .n { font-family: "Fraunces", serif; color: var(--stage-color); font-size: 1.15rem; display:block; margin-bottom: 6px; }
+
+  /* checklist */
+  .checklist { display: flex; flex-direction: column; gap: 10px; }
+  .check-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--item-color, var(--moss));
+    border-radius: 12px; padding: 14px 18px;
+  }
+  .check-item .txt { font-size: 0.95rem; }
+  .check-item .txt .stage-tag { display:block; font-size: 0.75rem; color: var(--ink-soft); margin-top: 2px; }
+  .check-item .right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  select.status {
+    font-family: "Public Sans", sans-serif; font-size: 0.82rem; padding: 7px 10px; border-radius: 100px;
+    border: 1px solid var(--border); background: var(--bg-soft); color: var(--ink); cursor: pointer;
+  }
+  select.status.done { border-color: var(--good); color: var(--good); }
+  select.status.progress { border-color: var(--acc-pack); color: var(--acc-pack); }
+
+  .remove-btn {
+    width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border);
+    background: transparent; color: var(--ink-soft); font-size: 0.9rem; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .remove-btn:hover { border-color: var(--acc-end); color: var(--acc-end); }
+
+  .add-row {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px;
+    background: var(--bg-soft); border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px;
+  }
+  .add-row input[type="text"] {
+    font-family: "Public Sans", sans-serif; font-size: 0.9rem; padding: 9px 12px; border-radius: 9px;
+    border: 1px solid var(--border); background: var(--card); color: var(--ink); flex: 1; min-width: 140px;
+  }
+  .add-row input[type="text"]:focus { outline: 2px solid var(--moss); outline-offset: 1px; }
+  .add-row label.lib-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--ink-soft); white-space: nowrap; }
+
+  /* metrics */
+  .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .metric-card {
+    background: var(--card); border: 1px solid var(--border); border-top: 4px solid var(--metric-color, var(--moss));
+    border-radius: 16px; padding: 22px;
+    box-shadow: 0 6px 18px var(--shadow); position: relative;
+  }
+  .metric-card .metric-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+  .metric-card h4 { font-size: 0.88rem; font-weight: 600; font-family: "Public Sans", sans-serif; margin: 0; }
+  .metric-inputs { display: flex; gap: 10px; align-items: center; }
+  .metric-inputs label { font-size: 0.72rem; color: var(--ink-soft); display:block; margin-bottom: 4px; }
+  .metric-inputs input {
+    width: 100%; font-family: "Fraunces", serif; font-size: 1.1rem; padding: 8px 10px;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--bg-soft); color: var(--ink);
+  }
+  .metric-inputs input:focus { outline: 2px solid var(--moss); outline-offset: 1px; }
+  .metric-delta { margin-top: 12px; font-size: 0.85rem; color: var(--ink-soft); }
+  .metric-delta strong { color: var(--good); }
+  .metric-delta.up strong { color: var(--acc-end); }
+
+  .add-metric-row {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 18px;
+    background: var(--bg-soft); border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px;
+  }
+  .add-metric-row input[type="text"] {
+    font-family: "Public Sans", sans-serif; font-size: 0.9rem; padding: 9px 12px; border-radius: 9px;
+    border: 1px solid var(--border); background: var(--card); color: var(--ink); flex: 1; min-width: 130px;
+  }
+  .add-metric-row input[type="text"]:focus { outline: 2px solid var(--moss); outline-offset: 1px; }
+
+  .save-note { font-size: 0.78rem; color: var(--ink-soft); margin-top: 18px; }
+
+  /* progress / stats / charts */
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 26px; }
+  .stat-tile {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px;
+    box-shadow: 0 6px 18px var(--shadow); border-top: 4px solid var(--tile-color, var(--moss));
+  }
+  .stat-tile .val { font-family: "Fraunces", serif; font-size: 2.1rem; color: var(--tile-color, var(--moss)); }
+  .stat-tile .lbl { font-size: 0.82rem; color: var(--ink-soft); margin-top: 4px; }
+
+  .chart-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; }
+  .chart-grid .wide { grid-column: 1 / -1; }
+  .chart-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px;
+    box-shadow: 0 6px 18px var(--shadow);
+  }
+  .chart-card h4 { font-size: 0.98rem; margin-bottom: 4px; }
+  .chart-card .chart-sub { font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 16px; }
+  .chart-box { position: relative; height: 240px; }
+  .chart-empty {
+    height: 240px; display: flex; align-items: center; justify-content: center;
+    font-size: 0.88rem; color: var(--ink-soft); text-align: center; padding: 0 20px;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 11px 19px; border-radius: 100px;
+    font-size: 0.9rem; font-weight: 600; text-decoration: none; border: 1px solid var(--border);
+    cursor: pointer; background: var(--bg-soft); color: var(--ink);
+  }
+  .btn-primary { background: var(--moss); color: #F8FBF8; border-color: transparent; }
+  .btn-primary:hover { background: var(--moss-deep); }
+  .btn:hover { border-color: var(--moss); }
+  .btn-small { padding: 9px 15px; font-size: 0.85rem; }
+
+  footer { border-top: 1px solid var(--border); padding: 34px 0 calc(34px + env(safe-area-inset-bottom, 0px)); }
+  footer p { font-size: 0.82rem; color: var(--ink-soft); max-width: 65ch; margin: 0; }
+
+  @media (max-width: 880px) {
+    .two-col { grid-template-columns: 1fr; }
+    .lifecycle { grid-template-columns: repeat(3, 1fr); }
+    .metrics-grid { grid-template-columns: 1fr 1fr; }
+    .stat-row { grid-template-columns: 1fr; }
+    .chart-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .lifecycle { grid-template-columns: repeat(2, 1fr); }
+    .metrics-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand">
+      <span class="brand-dots"><span style="background:var(--acc-raw)"></span><span style="background:var(--acc-pack)"></span><span style="background:var(--acc-use)"></span></span>
+      The Calm Flame — Sustainability Lab
+    </div>
+    <button class="theme-toggle" id="themeToggle" type="button">Switch to dark</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div class="kicker">Self-directed live project · circular economy · product strategy</div>
+    <h1>Circularity & Sustainable Product Strategy for The Calm Flame</h1>
+    <p class="lede">A full sustainability transformation project on a business you already run — mapped, tracked, and structured with the Ellen MacArthur Foundation's circular-design methodology. Add or remove interventions and metrics as your audit changes, and it all saves on this device.</p>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">0 of 9 interventions moved past "not started"</div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section>
+    <div class="two-col">
+      <div class="panel" style="--panel-accent: var(--acc-raw)">
+        <h3>Problem</h3>
+        <p contenteditable="true" id="problemText">Wax, fragrance and essential oils, containers, packaging, shipping and gifting materials all move through The Calm Flame with no map of where material use and waste actually occur — so there's no basis yet for redesigning the business around circularity.</p>
+      </div>
+      <div class="panel" style="--panel-accent: var(--acc-use)">
+        <h3>Solution</h3>
+        <p contenteditable="true" id="solutionText">Map the full product lifecycle, then run it through the Ellen MacArthur Foundation's Circular Design tools and intervention worksheets to identify concrete, costed changes rather than general sustainability language.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section>
+    <div class="section-head">
+      <div class="section-head-text">
+        <h2>Lifecycle map</h2>
+        <p>Every intervention below sits somewhere on this path — the colour carries through the whole dashboard.</p>
+      </div>
+    </div>
+    <div class="lifecycle" id="lifecycle"></div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section>
+    <div class="section-head">
+      <div class="section-head-text">
+        <h2>Intervention checklist</h2>
+        <p>Add your own interventions, remove ones that don't apply, and move each one past "Not started" as you research and implement it. The left edge colour matches its lifecycle stage.</p>
+      </div>
+    </div>
+    <div class="checklist" id="checklist"></div>
+    <div class="add-row">
+      <input type="text" id="newItemText" placeholder="New intervention, e.g. Compostable shipping mailers">
+      <input type="text" id="newItemStage" placeholder="Stage (optional), e.g. Transportation">
+      <button class="btn btn-small" id="addItemBtn" type="button">+ Add intervention</button>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section>
+    <div class="section-head">
+      <div class="section-head-text">
+        <h2>Impact tracker</h2>
+        <p>Add your own metric, remove one you're not tracking, and enter before/after numbers as your audit progresses. The change is calculated for you.</p>
+      </div>
+    </div>
+    <div class="metrics-grid" id="metricsGrid"></div>
+    <div class="add-metric-row">
+      <input type="text" id="newMetricLabel" placeholder="New metric, e.g. Wax sourced locally (%)">
+      <input type="text" id="newMetricUnit" placeholder="Unit (optional), e.g. %">
+      <label class="lib-toggle"><input type="checkbox" id="newMetricLib" checked> Lower is better</label>
+      <button class="btn btn-small" id="addMetricBtn" type="button">+ Add metric</button>
+    </div>
+    <p class="save-note">Everything on this page is stored only in this browser, on this device. Nothing is sent anywhere — copy your numbers elsewhere before switching devices.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <section>
+    <div class="section-head">
+      <div class="section-head-text">
+        <h2>Progress at a glance</h2>
+        <p>These update live from the checklist and tracker above — nothing to fill in twice.</p>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-tile" style="--tile-color: var(--acc-make)">
+        <div class="val" id="statTotal">0</div>
+        <div class="lbl">Interventions in scope</div>
+      </div>
+      <div class="stat-tile" style="--tile-color: var(--acc-pack)">
+        <div class="val" id="statImplemented">0%</div>
+        <div class="lbl">Implemented so far</div>
+      </div>
+      <div class="stat-tile" style="--tile-color: var(--acc-use)">
+        <div class="val" id="statMetrics">0 / 0</div>
+        <div class="lbl">Metrics with before/after data</div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h4>Checklist status</h4>
+        <div class="chart-sub">Not started, being researched, or implemented</div>
+        <div class="chart-box" id="statusChartBox"><canvas id="statusChart"></canvas></div>
+        <div class="chart-empty" id="statusChartEmpty" style="display:none">Add an intervention to see this chart.</div>
+      </div>
+      <div class="chart-card">
+        <h4>Interventions by lifecycle stage</h4>
+        <div class="chart-sub">Where your effort is concentrated — segment size and colour both track the stage</div>
+        <div class="chart-box" id="stageChartBox"><canvas id="stageChart"></canvas></div>
+        <div class="chart-empty" id="stageChartEmpty" style="display:none">Add an intervention to see this chart.</div>
+      </div>
+      <div class="chart-card wide">
+        <h4>Impact: % change per metric</h4>
+        <div class="chart-sub">Fill in before and after values in the tracker above to populate this</div>
+        <div class="chart-box" id="metricChartBox"><canvas id="metricChart"></canvas></div>
+        <div class="chart-empty" id="metricChartEmpty" style="display:none">Enter before and after numbers in the Impact tracker to see this chart.</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <p>Built as a live, editable workspace for The Calm Flame's sustainability audit. Revisit as the project moves and watch the charts above fill in as real numbers come through.</p>
+  </div>
+</footer>
+
+<script>
+  // ---------- Theme ----------
+  const toggle = document.getElementById('themeToggle');
+  const root = document.documentElement;
+  function systemPrefersDark() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  function applyThemeLabel() {
+    const explicit = root.getAttribute('data-theme');
+    const isDark = explicit ? explicit === 'dark' : systemPrefersDark();
+    toggle.textContent = isDark ? 'Switch to light' : 'Switch to dark';
+  }
+  toggle.addEventListener('click', () => {
+    const current = root.getAttribute('data-theme');
+    const currentlyDark = current ? current === 'dark' : systemPrefersDark();
+    root.setAttribute('data-theme', currentlyDark ? 'light' : 'dark');
+    applyThemeLabel();
+    setTimeout(updateCharts, 50);
+  });
+  applyThemeLabel();
+
+  // ---------- Safe local storage helpers ----------
+  function safeGet(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) { return fallback; }
+  }
+  function safeSet(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* storage unavailable, ignore */ }
+  }
+  function uid(prefix) {
+    return prefix + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+  }
+  function getVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  // ---------- Colour system: one hue per lifecycle stage ----------
+  const STAGES = [
+    { key: 'raw',   name: 'Raw materials',   sub: 'wax, oils, wicks, dyes',        varName: '--acc-raw' },
+    { key: 'make',  name: 'Manufacturing',   sub: 'pouring, blending, curing',     varName: '--acc-make' },
+    { key: 'pack',  name: 'Packaging',       sub: 'containers, boxes, gift wrap',  varName: '--acc-pack' },
+    { key: 'ship',  name: 'Transportation',  sub: 'fulfilment, shipping, last mile', varName: '--acc-ship' },
+    { key: 'use',   name: 'Customer use',    sub: 'burn life, refill, reuse',      varName: '--acc-use' },
+    { key: 'end',   name: 'End-of-life',     sub: 'disposal, return, recycle',     varName: '--acc-end' },
+  ];
+  STAGES.forEach(s => s.css = 'var(' + s.varName + ')');
+  const FALLBACK_CYCLE = STAGES.map(s => s.css);
+
+  function colorForStageText(text) {
+    if (!text) return null;
+    const t = text.toLowerCase();
+    if (t.includes('raw') || t.includes('material') || t.includes('supplier')) return STAGES[0].css;
+    if (t.includes('manufactur')) return STAGES[1].css;
+    if (t.includes('packag')) return STAGES[2].css;
+    if (t.includes('transport') || t.includes('ship') || t.includes('logistic')) return STAGES[3].css;
+    if (t.includes('customer') || t.includes('use')) return STAGES[4].css;
+    if (t.includes('end') || t.includes('life') || t.includes('return') || t.includes('take')) return STAGES[5].css;
+    return null;
+  }
+  function stageForText(text) {
+    if (!text) return null;
+    const t = text.toLowerCase();
+    if (t.includes('raw') || t.includes('material') || t.includes('supplier')) return STAGES[0];
+    if (t.includes('manufactur')) return STAGES[1];
+    if (t.includes('packag')) return STAGES[2];
+    if (t.includes('transport') || t.includes('ship') || t.includes('logistic')) return STAGES[3];
+    if (t.includes('customer') || t.includes('use')) return STAGES[4];
+    if (t.includes('end') || t.includes('life') || t.includes('return') || t.includes('take')) return STAGES[5];
+    return null;
+  }
+  function hashColor(id) {
+    let sum = 0;
+    for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i);
+    return FALLBACK_CYCLE[sum % FALLBACK_CYCLE.length];
+  }
+
+  // Render lifecycle map + legend
+  const lifecycleEl = document.getElementById('lifecycle');
+  STAGES.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'stage';
+    div.style.setProperty('--stage-color', s.css);
+    div.innerHTML = `<span class="n">${i + 1}</span>${s.name}<br>${s.sub}`;
+    lifecycleEl.appendChild(div);
+  });
+  const legendEl = document.getElementById('legend');
+  STAGES.forEach(s => {
+    const chip = document.createElement('div');
+    chip.className = 'legend-chip';
+    chip.innerHTML = `<span class="dot" style="background:${s.css}"></span>${s.name}`;
+    legendEl.appendChild(chip);
+  });
+
+  // ---------- Editable text panels ----------
+  ['problemText', 'solutionText'].forEach(id => {
+    const el = document.getElementById(id);
+    const key = 'calmflame_text_' + id;
+    const saved = safeGet(key, null);
+    if (saved) el.textContent = saved;
+    el.addEventListener('input', () => safeSet(key, el.textContent));
+  });
+
+  // ---------- Intervention checklist ----------
+  const DEFAULT_INTERVENTIONS = [
+    { id: 'pack-reduce', text: 'Packaging reduction', stage: 'Packaging' },
+    { id: 'reuse-container', text: 'Reusable containers', stage: 'Packaging / customer use' },
+    { id: 'coconut-terracotta', text: 'Coconut shell / terracotta reuse', stage: 'Raw materials / packaging' },
+    { id: 'return-program', text: 'Return / reuse programme', stage: 'End-of-life' },
+    { id: 'supplier-sustain', text: 'Supplier sustainability', stage: 'Raw materials' },
+    { id: 'pack-alt', text: 'Packaging alternatives', stage: 'Packaging' },
+    { id: 'longevity', text: 'Product longevity', stage: 'Customer use' },
+    { id: 'reverse-log', text: 'Reverse logistics', stage: 'Transportation / end-of-life' },
+    { id: 'takeback', text: 'Customer take-back incentives', stage: 'Customer use / end-of-life' },
+  ];
+  const ITEMS_KEY = 'calmflame_checklist_items_v1';
+  const CHECK_KEY = 'calmflame_checklist_status_v1';
+  let interventions = safeGet(ITEMS_KEY, DEFAULT_INTERVENTIONS);
+  let checkState = safeGet(CHECK_KEY, {});
+
+  const checklistEl = document.getElementById('checklist');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+
+  function renderChecklist() {
+    checklistEl.innerHTML = '';
+    interventions.forEach(item => {
+      const status = checkState[item.id] || 'not-started';
+      const color = colorForStageText(item.stage) || hashColor(item.id);
+      const row = document.createElement('div');
+      row.className = 'check-item';
+      row.style.setProperty('--item-color', color);
+      const stageHtml = item.stage ? `<span class="stage-tag">${item.stage}</span>` : '';
+      row.innerHTML = `
+        <div class="txt">${item.text}${stageHtml}</div>
+        <div class="right">
+          <select class="status ${status === 'done' ? 'done' : status === 'in-progress' ? 'progress' : ''}" data-id="${item.id}">
+            <option value="not-started" ${status === 'not-started' ? 'selected' : ''}>Not started</option>
+            <option value="in-progress" ${status === 'in-progress' ? 'selected' : ''}>Researching</option>
+            <option value="done" ${status === 'done' ? 'selected' : ''}>Implemented</option>
+          </select>
+          <button class="remove-btn" data-remove="${item.id}" title="Remove" type="button">×</button>
+        </div>
+      `;
+      checklistEl.appendChild(row);
+    });
+    checklistEl.querySelectorAll('select.status').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        const id = e.target.getAttribute('data-id');
+        checkState[id] = e.target.value;
+        safeSet(CHECK_KEY, checkState);
+        e.target.className = 'status ' + (e.target.value === 'done' ? 'done' : e.target.value === 'in-progress' ? 'progress' : '');
+        updateProgress();
+      });
+    });
+    checklistEl.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.target.getAttribute('data-remove');
+        interventions = interventions.filter(i => i.id !== id);
+        delete checkState[id];
+        safeSet(ITEMS_KEY, interventions);
+        safeSet(CHECK_KEY, checkState);
+        renderChecklist();
+        updateProgress();
+      });
+    });
+  }
+
+  function updateProgress() {
+    const total = interventions.length;
+    if (total === 0) {
+      progressFill.style.width = '0%';
+      progressLabel.textContent = 'No interventions yet — add one below.';
+    } else {
+      const moved = interventions.filter(i => (checkState[i.id] || 'not-started') !== 'not-started').length;
+      const done = interventions.filter(i => checkState[i.id] === 'done').length;
+      const pct = Math.round((moved / total) * 100);
+      progressFill.style.width = pct + '%';
+      progressLabel.textContent = `${moved} of ${total} interventions moved past "not started" (${done} implemented)`;
+    }
+    updateCharts();
+  }
+
+  document.getElementById('addItemBtn').addEventListener('click', () => {
+    const textInput = document.getElementById('newItemText');
+    const stageInput = document.getElementById('newItemStage');
+    const text = textInput.value.trim();
+    if (!text) { textInput.focus(); return; }
+    const newItem = { id: uid('item'), text: text, stage: stageInput.value.trim() };
+    interventions.push(newItem);
+    safeSet(ITEMS_KEY, interventions);
+    textInput.value = '';
+    stageInput.value = '';
+    renderChecklist();
+    updateProgress();
+    textInput.focus();
+  });
+  document.getElementById('newItemText').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('addItemBtn').click();
+  });
+
+  renderChecklist();
+
+  // ---------- Impact metrics ----------
+  const DEFAULT_METRICS = [
+    { id: 'pack-weight', label: 'Packaging weight / order', unit: 'g', lowerIsBetter: true },
+    { id: 'pack-recyclable', label: '% packaging reusable or recyclable', unit: '%', lowerIsBetter: false },
+    { id: 'material-cost', label: 'Material cost / order', unit: '₹', lowerIsBetter: true },
+    { id: 'waste-order', label: 'Waste generated / order', unit: 'g', lowerIsBetter: true },
+    { id: 'takeback-rate', label: '% customers using take-back / reuse', unit: '%', lowerIsBetter: false },
+    { id: 'co2e-order', label: 'CO₂e / order', unit: 'kg', lowerIsBetter: true },
+  ];
+  const METRIC_ITEMS_KEY = 'calmflame_metric_items_v1';
+  const METRIC_KEY = 'calmflame_metrics_v1';
+  let metrics = safeGet(METRIC_ITEMS_KEY, DEFAULT_METRICS);
+  let metricState = safeGet(METRIC_KEY, {});
+
+  const metricsGrid = document.getElementById('metricsGrid');
+
+  function renderMetrics() {
+    metricsGrid.innerHTML = '';
+    metrics.forEach(m => {
+      const vals = metricState[m.id] || { before: '', after: '' };
+      const color = colorForStageText(m.label) || hashColor(m.id);
+      const card = document.createElement('div');
+      card.className = 'metric-card';
+      card.style.setProperty('--metric-color', color);
+      const unitTxt = m.unit ? ` (${m.unit})` : '';
+      card.innerHTML = `
+        <div class="metric-top">
+          <h4>${m.label}${unitTxt}</h4>
+          <button class="remove-btn" data-remove-metric="${m.id}" title="Remove" type="button">×</button>
+        </div>
+        <div class="metric-inputs">
+          <div>
+            <label>Before</label>
+            <input type="number" step="any" inputmode="decimal" data-id="${m.id}" data-field="before" value="${vals.before}" placeholder="—">
+          </div>
+          <div>
+            <label>After</label>
+            <input type="number" step="any" inputmode="decimal" data-id="${m.id}" data-field="after" value="${vals.after}" placeholder="—">
+          </div>
+        </div>
+        <div class="metric-delta" data-delta="${m.id}"></div>
+      `;
+      metricsGrid.appendChild(card);
+    });
+
+    metricsGrid.querySelectorAll('input[type="number"]').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const id = e.target.getAttribute('data-id');
+        const field = e.target.getAttribute('data-field');
+        if (!metricState[id]) metricState[id] = { before: '', after: '' };
+        metricState[id][field] = e.target.value;
+        safeSet(METRIC_KEY, metricState);
+        updateDelta(id);
+        updateCharts();
+      });
+    });
+    metricsGrid.querySelectorAll('[data-remove-metric]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.target.getAttribute('data-remove-metric');
+        metrics = metrics.filter(m => m.id !== id);
+        delete metricState[id];
+        safeSet(METRIC_ITEMS_KEY, metrics);
+        safeSet(METRIC_KEY, metricState);
+        renderMetrics();
+        updateCharts();
+      });
+    });
+
+    metrics.forEach(m => updateDelta(m.id));
+  }
+
+  function updateDelta(id) {
+    const m = metrics.find(x => x.id === id);
+    if (!m) return;
+    const vals = metricState[id] || { before: '', after: '' };
+    const el = document.querySelector(`[data-delta="${id}"]`);
+    if (!el) return;
+    const before = parseFloat(vals.before);
+    const after = parseFloat(vals.after);
+    if (isNaN(before) || isNaN(after) || before === 0) {
+      el.textContent = 'Enter both values to see the change.';
+      el.className = 'metric-delta';
+      return;
+    }
+    const change = ((after - before) / Math.abs(before)) * 100;
+    const improved = m.lowerIsBetter ? change < 0 : change > 0;
+    const sign = change > 0 ? '+' : '';
+    el.innerHTML = `<strong>${sign}${change.toFixed(1)}%</strong> vs. before`;
+    el.className = 'metric-delta' + (improved ? '' : ' up');
+  }
+
+  document.getElementById('addMetricBtn').addEventListener('click', () => {
+    const labelInput = document.getElementById('newMetricLabel');
+    const unitInput = document.getElementById('newMetricUnit');
+    const libInput = document.getElementById('newMetricLib');
+    const label = labelInput.value.trim();
+    if (!label) { labelInput.focus(); return; }
+    const newMetric = { id: uid('metric'), label: label, unit: unitInput.value.trim(), lowerIsBetter: libInput.checked };
+    metrics.push(newMetric);
+    safeSet(METRIC_ITEMS_KEY, metrics);
+    labelInput.value = '';
+    unitInput.value = '';
+    libInput.checked = true;
+    renderMetrics();
+    updateCharts();
+    labelInput.focus();
+  });
+  document.getElementById('newMetricLabel').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('addMetricBtn').click();
+  });
+
+  renderMetrics();
+
+  // ---------- Charts ----------
+  let statusChart = null, stageChart = null, metricChart = null;
+
+  function computeStatusCounts() {
+    const counts = { 'not-started': 0, 'in-progress': 0, 'done': 0 };
+    interventions.forEach(i => {
+      const s = checkState[i.id] || 'not-started';
+      counts[s] = (counts[s] || 0) + 1;
+    });
+    return counts;
+  }
+
+  function computeStageCounts() {
+    const counts = {};
+    STAGES.forEach(s => counts[s.name] = 0);
+    let other = 0;
+    interventions.forEach(i => {
+      const s = stageForText(i.stage);
+      if (s) counts[s.name]++; else other++;
+    });
+    return { counts, other };
+  }
+
+  function computeMetricChanges() {
+    return metrics.map(m => {
+      const vals = metricState[m.id] || { before: '', after: '' };
+      const before = parseFloat(vals.before);
+      const after = parseFloat(vals.after);
+      if (isNaN(before) || isNaN(after) || before === 0) return null;
+      const change = ((after - before) / Math.abs(before)) * 100;
+      const improved = m.lowerIsBetter ? change < 0 : change > 0;
+      return { label: m.label, change: change, improved: improved };
+    }).filter(Boolean);
+  }
+
+  function updateStatTiles() {
+    const total = interventions.length;
+    const counts = computeStatusCounts();
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statImplemented').textContent = total ? Math.round((counts['done'] / total) * 100) + '%' : '0%';
+    const changes = computeMetricChanges();
+    document.getElementById('statMetrics').textContent = changes.length + ' / ' + metrics.length;
+  }
+
+  function hexToRgba(hex, alpha) {
+    hex = (hex || '').replace('#', '').trim();
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    if (hex.length !== 6) return hex || 'rgba(120,120,120,' + alpha + ')';
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  let pluginRegistered = false;
+  function ensureDatalabelsPlugin() {
+    if (!pluginRegistered && typeof ChartDataLabels !== 'undefined') {
+      Chart.register(ChartDataLabels);
+      Chart.defaults.set('plugins.datalabels', { display: false });
+      pluginRegistered = true;
+    }
+  }
+
+  function updateCharts() {
+    if (typeof Chart === 'undefined') return;
+    ensureDatalabelsPlugin();
+    updateStatTiles();
+
+    const inkSoft = getVar('--ink-soft');
+    const ink = getVar('--ink');
+    const cardBg = getVar('--card');
+    Chart.defaults.color = inkSoft;
+    Chart.defaults.font.family = 'Public Sans, sans-serif';
+
+    // --- status doughnut ---
+    const total = interventions.length;
+    document.getElementById('statusChartBox').style.display = total ? 'block' : 'none';
+    document.getElementById('statusChartEmpty').style.display = total ? 'none' : 'flex';
+    if (total) {
+      const counts = computeStatusCounts();
+      const rawLabels = ['Not started', 'Researching', 'Implemented'];
+      const data = [counts['not-started'], counts['in-progress'], counts['done']];
+      const colors = [getVar('--border'), getVar('--acc-pack'), getVar('--moss')];
+      const cfg = {
+        type: 'doughnut',
+        data: { labels: rawLabels, datasets: [{ data: data, backgroundColor: colors, borderColor: cardBg, borderWidth: 3, hoverOffset: 6 }] },
+        options: {
+          maintainAspectRatio: false,
+          cutout: '60%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: inkSoft, boxWidth: 10, padding: 14,
+                generateLabels: (chart) => {
+                  const ds = chart.data.datasets[0];
+                  return chart.data.labels.map((label, i) => ({
+                    text: `${label}  (${ds.data[i]})`,
+                    fillStyle: ds.backgroundColor[i],
+                    strokeStyle: ds.backgroundColor[i],
+                    fontColor: inkSoft,
+                    index: i
+                  }));
+                }
+              }
+            },
+            datalabels: {
+              display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0,
+              color: '#fff',
+              font: { weight: '700', size: 12 },
+              formatter: (value) => value
+            },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw} of ${total}` } }
+          }
+        }
+      };
+      if (!statusChart) {
+        statusChart = new Chart(document.getElementById('statusChart'), cfg);
+      } else {
+        statusChart.data = cfg.data;
+        statusChart.options = cfg.options;
+        statusChart.update();
+      }
+    }
+
+    // --- stage polar area (replaces the flat bar chart) ---
+    document.getElementById('stageChartBox').style.display = total ? 'block' : 'none';
+    document.getElementById('stageChartEmpty').style.display = total ? 'none' : 'flex';
+    if (total) {
+      const { counts } = computeStageCounts();
+      const labels = STAGES.map(s => s.name);
+      const data = STAGES.map(s => counts[s.name] || 0);
+      const solidColors = STAGES.map(s => getVar(s.varName));
+      const fillColors = solidColors.map(c => hexToRgba(c, 0.8));
+      const cfg = {
+        type: 'polarArea',
+        data: { labels: labels, datasets: [{ data: data, backgroundColor: fillColors, borderColor: cardBg, borderWidth: 2 }] },
+        options: {
+          maintainAspectRatio: false,
+          scales: {
+            r: {
+              grid: { color: getVar('--border') },
+              angleLines: { color: getVar('--border') },
+              ticks: { display: false, backdropColor: 'transparent' },
+              pointLabels: { display: false }
+            }
+          },
+          plugins: {
+            legend: { position: 'bottom', labels: { color: inkSoft, boxWidth: 10, padding: 12, font: { size: 11 } } },
+            datalabels: {
+              display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0,
+              color: '#fff',
+              font: { weight: '700', size: 12 },
+              formatter: (value) => value
+            },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}` } }
+          }
+        }
+      };
+      if (!stageChart) {
+        stageChart = new Chart(document.getElementById('stageChart'), cfg);
+      } else {
+        stageChart.data = cfg.data;
+        stageChart.options = cfg.options;
+        stageChart.update();
+      }
+    }
+
+    // --- metric % change horizontal bar ---
+    const changes = computeMetricChanges();
+    document.getElementById('metricChartBox').style.display = changes.length ? 'block' : 'none';
+    document.getElementById('metricChartEmpty').style.display = changes.length ? 'none' : 'flex';
+    if (changes.length) {
+      const labels = changes.map(c => c.label);
+      const data = changes.map(c => Math.round(c.change * 10) / 10);
+      const colors = changes.map(c => c.improved ? getVar('--moss') : getVar('--acc-end'));
+      const metricCfg = {
+        type: 'bar',
+        data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderRadius: 6, maxBarThickness: 28 }] },
+        options: {
+          indexAxis: 'y',
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            datalabels: {
+              display: true,
+              color: inkSoft,
+              anchor: (ctx) => ctx.raw >= 0 ? 'end' : 'start',
+              align: (ctx) => ctx.raw >= 0 ? 'end' : 'start',
+              font: { weight: '700', size: 11 },
+              formatter: (v) => (v > 0 ? '+' : '') + v + '%'
+            },
+            tooltip: { callbacks: { label: (ctx) => (ctx.raw > 0 ? '+' : '') + ctx.raw + '% vs. before' } }
+          },
+          scales: {
+            x: { ticks: { color: inkSoft, callback: (v) => v + '%' }, grid: { color: getVar('--border') } },
+            y: { ticks: { color: inkSoft, font: { size: 11 } }, grid: { display: false } }
+          }
+        }
+      };
+      if (!metricChart) {
+        metricChart = new Chart(document.getElementById('metricChart'), metricCfg);
+      } else {
+        metricChart.data = metricCfg.data;
+        metricChart.options = metricCfg.options;
+        metricChart.update();
+      }
+    }
+  }
+
+  updateProgress();
+  updateCharts();
+</script>
+
+</body>
+</html>
